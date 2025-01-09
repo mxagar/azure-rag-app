@@ -17,18 +17,18 @@ Install Python environment, e.g., using `conda`:
 # Create environment (Python 3.10, pip & pip-tools)
 conda env create -f conda.yaml
 # Activate environment
-conda activate rag
+conda activate azure-rag
 
 # Generate pinned dependencies and install/sync
-pip-compile requirements.in --verbose
-pip-sync requirements.txt
+pip-compile requirements-dev.in --verbose
+pip-sync requirements-dev.txt
 
 # If we need a new dependency,
 # add it to requirements.in 
 # (WATCH OUT: try to follow alphabetical order)
 # And then:
-pip-compile requirements.in
-pip-sync requirements.txt
+pip-compile requirements[-dev].in
+pip-sync requirements[-dev].txt
 ```
 
 ### General Installation (Docker)
