@@ -24,7 +24,7 @@ pip-compile requirements-dev.in --verbose
 pip-sync requirements-dev.txt
 
 # If we need a new dependency,
-# add it to requirements.in 
+# add it to requirements[-dev].in 
 # (WATCH OUT: try to follow alphabetical order)
 # And then:
 pip-compile requirements[-dev].in
