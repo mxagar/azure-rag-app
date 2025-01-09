@@ -1,6 +1,6 @@
 # conda env create -f conda.yaml
-# conda remove --name rag --all
-name: rag
+# conda remove --name azure-rag --all
+name: azure-rag
 channels:
   - conda-forge
   - defaults

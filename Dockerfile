@@ -1,13 +1,13 @@
 FROM python:3.10
 
-COPY ./requirements.txt /webapp/requirements.txt
+COPY ./requirements.txt /backend/requirements.txt
 
-WORKDIR /webapp
+WORKDIR /backend
 
 RUN pip install -r requirements.txt
 
-COPY webapp/* /webapp
+COPY backend/* /backend
 
 ENTRYPOINT [ "uvicorn" ]
 
-CMD [ "--host", "0.0.0.0", "main:app" ]
+CMD [ "--host", "0.0.0.0", "api:app" ]
