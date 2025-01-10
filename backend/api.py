@@ -2,6 +2,10 @@
 
 Original source: https://github.com/alfredodeza/azure-rag
 
+Usage (local):
+
+    uvicorn --env-file ../.env --host 0.0.0.0 backend.api:app
+
 Author: Mikel Sagardia
 Date: 2025-01-10
 """
