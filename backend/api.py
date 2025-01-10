@@ -69,6 +69,7 @@ def root():
 
 @app.post("/ask")
 def ask(body: Body, credentials: HTTPAuthorizationCredentials = Depends(security)):
+    print(credentials.credentials)
     if credentials.credentials != RAG_API_KEY:
         raise HTTPException(status_code=401, detail="Unauthorized")
     chatbot_response = chatbot(body.query)
