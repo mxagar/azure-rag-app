@@ -67,6 +67,7 @@ jobs:
               --set-env-vars \
               OPENAI_API_TYPE=azure \
               AZURE_OPENAI_ENDPOINT=${{ vars.AZURE_OPENAI_ENDPOINT }} \
+              AZURE_OPENAI_ENDPOINT_URI=${{ vars.AZURE_OPENAI_ENDPOINT_URI }} \
               AZURE_OPENAI_API_KEY=${{ secrets.AZURE_OPENAI_API_KEY }} \
               AZURE_OPENAI_API_VERSION=${{ vars.AZURE_OPENAI_API_VERSION }} \
               AZURE_SEARCH_ENDPOINT=${{ vars.AZURE_SEARCH_ENDPOINT }} \
