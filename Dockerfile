@@ -2,7 +2,7 @@
 #   docker build -t azure-rag-app .
 #   docker build --build-arg http_proxy=<proxy> --build-arg https_proxy=<proxy> -t azure-rag-app .
 # Run the container: port-forward to our desktop 8080 port
-#   docker run --env-file .env -p 8080:8000 azure-rag-app
+#   docker run --rm --env-file .env -p 8080:8000 azure-rag-app
 # Open in browser: http://localhost:8080/docs
 
 # Use Python 3.10 base image
