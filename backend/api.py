@@ -61,7 +61,7 @@ class Body(BaseModel):
 
 
 @app.get('/')
-def root(authorization: str = Header(None)):
+def root():
     return RedirectResponse(url='/docs', status_code=301)
 
 
