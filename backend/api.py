@@ -47,7 +47,8 @@ from pydantic import BaseModel
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 
-from .rag import chatbot
+from rag import chatbot
+
 
 # FastAPI app
 app = FastAPI()
