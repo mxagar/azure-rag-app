@@ -61,8 +61,6 @@ jobs:
           inlineScript: |
             az config set extension.use_dynamic_install=yes_without_prompt
             az containerapp registry set -n ${{ vars.AZURE_CONTAINER_APP_NAME }} -g ${{ vars.AZURE_CONTAINER_RG_NAME }} --server ghcr.io --username  ${{ github.actor }} --password ${{ secrets.GH_PAT }}
-            az containerapp update -n ${{ vars.AZURE_CONTAINER_APP_NAME }} -g ${{ vars.AZURE_CONTAINER_RG_NAME }} --image ghcr.io/${{ env.REPO }}:${{ github.sha }} --container-name ${{ vars.AZURE_CONTAINER_APP_NAME }}
-            az containerapp update -n ${{ vars.AZURE_CONTAINER_APP_NAME }} -g ${{ vars.AZURE_CONTAINER_RG_NAME }} --cpu 2 --memory 4Gi --container-name ${{ vars.AZURE_CONTAINER_APP_NAME }}
             az containerapp update \
               -n ${{ vars.AZURE_CONTAINER_APP_NAME }} \
               -g ${{ vars.AZURE_CONTAINER_RG_NAME }} \
@@ -74,4 +72,7 @@ jobs:
               AZURE_SEARCH_ENDPOINT=${{ vars.AZURE_SEARCH_ENDPOINT }} \
               AZURE_SEARCH_API_KEY=${{ secrets.AZURE_SEARCH_API_KEY }} \
               AZURE_SEARCH_INDEX_NAME=${{ vars.AZURE_SEARCH_INDEX_NAME }} \
+              --image ghcr.io/${{ env.REPO }}:${{ github.sha }} \
               --container-name ${{ vars.AZURE_CONTAINER_APP_NAME }}
+            az containerapp update -n ${{ vars.AZURE_CONTAINER_APP_NAME }} -g ${{ vars.AZURE_CONTAINER_RG_NAME }} --image ghcr.io/${{ env.REPO }}:${{ github.sha }} --container-name ${{ vars.AZURE_CONTAINER_APP_NAME }}
+            az containerapp update -n ${{ vars.AZURE_CONTAINER_APP_NAME }} -g ${{ vars.AZURE_CONTAINER_RG_NAME }} --cpu 2 --memory 4Gi --image ghcr.io/${{ env.REPO }}:${{ github.sha }} --container-name ${{ vars.AZURE_CONTAINER_APP_NAME }}
