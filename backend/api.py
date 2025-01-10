@@ -23,7 +23,8 @@ Use:
     url = "http://127.0.0.1:8080/ask"
     payload = {"query": "Which is the best wine?"}
     headers = {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {os.getenv('RAG_API_KEY')}",
     }
 
     # Make the POST request
@@ -31,7 +32,8 @@ Use:
         url,
         json=payload,
         headers=headers,
-        proxies={"http": None, "https": None}  # Use this only if you have any proxies...
+        proxies={"http": None, "https": None}  # Local use, no proxies...
+        #proxies={"http": os.getenv("HTTP_PROXY", None), "https": os.getenv("HTTPS_PROXY", None)}  # Use this only if you have any proxies...
     )
 
     if response.status_code == 200:
@@ -44,10 +46,10 @@ Date: 2025-01-10
 """
 from pydantic import BaseModel
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import RedirectResponse
 
-from rag import chatbot
+from rag import chatbot, RAG_API_KEY
 
 
 # FastAPI app
@@ -59,11 +61,15 @@ class Body(BaseModel):
 
 
 @app.get('/')
-def root():
+def root(authorization: str = Header(None)):
+    if authorization != f"Bearer {RAG_API_KEY}":
+        raise HTTPException(status_code=401, detail="Unauthorized")
     return RedirectResponse(url='/docs', status_code=301)
 
 
 @app.post('/ask')
-def ask(body: Body):
+def ask(body: Body, authorization: str = Header(None)):
+    if authorization != f"Bearer {RAG_API_KEY}":
+        raise HTTPException(status_code=401, detail="Unauthorized")
     chatbot_response = chatbot(body.query)
     return {'response': chatbot_response}

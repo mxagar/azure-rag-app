@@ -73,6 +73,7 @@ jobs:
               AZURE_SEARCH_ENDPOINT=${{ vars.AZURE_SEARCH_ENDPOINT }} \
               AZURE_SEARCH_API_KEY=${{ secrets.AZURE_SEARCH_API_KEY }} \
               AZURE_SEARCH_INDEX_NAME=${{ vars.AZURE_SEARCH_INDEX_NAME }} \
+              RAG_API_KEY=${{ vars.RAG_API_KEY }} \
               --image ghcr.io/${{ env.REPO }}:${{ github.sha }} \
               --container-name ${{ vars.AZURE_CONTAINER_APP_NAME }}
             az containerapp update -n ${{ vars.AZURE_CONTAINER_APP_NAME }} -g ${{ vars.AZURE_CONTAINER_RG_NAME }} --image ghcr.io/${{ env.REPO }}:${{ github.sha }} --container-name ${{ vars.AZURE_CONTAINER_APP_NAME }}
