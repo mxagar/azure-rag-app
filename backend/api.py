@@ -62,8 +62,6 @@ class Body(BaseModel):
 
 @app.get('/')
 def root(authorization: str = Header(None)):
-    if authorization != f"Bearer {RAG_API_KEY}":
-        raise HTTPException(status_code=401, detail="Unauthorized")
     return RedirectResponse(url='/docs', status_code=301)
 
 
