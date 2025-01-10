@@ -46,7 +46,8 @@ Date: 2025-01-10
 """
 from pydantic import BaseModel
 
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Depends, HTTPException
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import RedirectResponse
 
 from rag import chatbot, RAG_API_KEY
@@ -54,6 +55,7 @@ from rag import chatbot, RAG_API_KEY
 
 # FastAPI app
 app = FastAPI()
+security = HTTPBearer()
 
 
 class Body(BaseModel):
@@ -65,9 +67,9 @@ def root():
     return RedirectResponse(url='/docs', status_code=301)
 
 
-@app.post('/ask')
-def ask(body: Body, authorization: str = Header(None)):
-    if authorization != f"Bearer {RAG_API_KEY}":
+@app.post("/ask")
+def ask(body: Body, credentials: HTTPAuthorizationCredentials = Depends(security)):
+    if credentials.credentials != RAG_API_KEY:
         raise HTTPException(status_code=401, detail="Unauthorized")
     chatbot_response = chatbot(body.query)
     return {'response': chatbot_response}
