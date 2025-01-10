@@ -1,22 +1,27 @@
+"""Description.
+
+Original source: https://github.com/alfredodeza/azure-rag
+
+Author: Mikel Sagardia
+Date: 2025-01-10
+"""
+
 import os
 from os.path import dirname
-from pprint import pprint
 from dotenv import load_dotenv
+from pydantic import BaseModel
 
-import openai
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
-from pydantic import BaseModel
+
+import openai
 from langchain_openai import AzureOpenAIEmbeddings, AzureChatOpenAI
 from langchain.vectorstores import AzureSearch
 from langchain_community.retrievers import AzureAISearchRetriever
+from langchain.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
 
-# Embeddings
-# Store
-# Retriever
-# Chat
-
-app = FastAPI()
 
 # Load environment variables
 current_dir = os.path.abspath(".")
@@ -26,7 +31,8 @@ env_file_loaded = False
 try:
     env_file_loaded = load_dotenv(env_file, override=True)
 except Exception as e:
-    print(f"Error loading .env file: {e}")
+    pass
+
 
 # Retrieve Azure credentials and variables
 azure_openai_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
@@ -38,6 +44,7 @@ azure_openai_api_version = os.getenv("AZURE_OPENAI_API_VERSION")
 azure_search_api_key = os.getenv("AZURE_SEARCH_API_KEY")
 azure_search_endpoint = os.getenv("AZURE_SEARCH_ENDPOINT")
 azure_search_index_name = os.getenv("AZURE_SEARCH_INDEX_NAME")
+
 
 # Connect to Azure OpenAI - Embeddings Model
 embeddings = AzureOpenAIEmbeddings(
@@ -76,6 +83,10 @@ chat_model = AzureChatOpenAI(
 )
 
 
+# FastAPI app
+app = FastAPI()
+
+
 class Body(BaseModel):
     query: str
 
@@ -87,14 +98,43 @@ def root():
 
 @app.post('/ask')
 def ask(body: Body):
-    """
-    Use the query parameter to interact with the Azure OpenAI Service
-    using the Azure Cognitive Search API for Retrieval Augmented Generation.
-    """
-    search_result = search(body.query)
-    chat_bot_response = assistant(body.query, search_result)
-    return {'response': chat_bot_response}
+    chatbot_response = chatbot(body.query)
+    return {'response': chatbot_response}
 
+
+def create_prompt():
+    return ChatPromptTemplate.from_messages([
+        ("system", (
+            "You are a world-class assistant. "
+            "Answer the last question based only on the last context provided. "
+        )),
+        ("ai", (
+            "Context: {context}"
+        )),        
+        ("human", (
+            "Question: {question}"
+        )),
+    ])
+
+
+def format_docs(docs):
+    return "\n\n".join(doc.page_content for doc in docs)
+
+
+def chatbot(query: str):
+    history = create_prompt()
+    chain = (
+        {"context": retriever | format_docs, "question": RunnablePassthrough()}
+        | history
+        | chat_model
+        | StrOutputParser()
+    )
+    response = chain.invoke(query)
+
+    return response
+
+
+### ---
 
 
 def search(query):
