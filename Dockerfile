@@ -6,7 +6,7 @@ COPY ./requirements.in /backend/requirements.in
 WORKDIR /backend
 
 RUN pip install pip-tools
-RUN pip-compile requirements-dev.in
+RUN pip-compile requirements.in
 RUN pip install -r requirements.txt
 
 COPY backend/* /backend
