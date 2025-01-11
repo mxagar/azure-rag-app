@@ -39,8 +39,8 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: ghcr.io/${{ env.REPO }}:${{ github.sha }}
-          file: ./Dockerfile
+          tags: ghcr.io/${{ env.REPO }}-backend:${{ github.sha }}
+          file: ./docker/Dockerfile.backend
 
   deploy:
     runs-on: ubuntu-latest
@@ -74,7 +74,7 @@ jobs:
               AZURE_SEARCH_API_KEY=${{ secrets.AZURE_SEARCH_API_KEY }} \
               AZURE_SEARCH_INDEX_NAME=${{ vars.AZURE_SEARCH_INDEX_NAME }} \
               RAG_API_KEY=${{ secrets.RAG_API_KEY }} \
-              --image ghcr.io/${{ env.REPO }}:${{ github.sha }} \
+              --image ghcr.io/${{ env.REPO }}-backend:${{ github.sha }} \
               --container-name ${{ vars.AZURE_CONTAINER_APP_NAME }}
-            az containerapp update -n ${{ vars.AZURE_CONTAINER_APP_NAME }} -g ${{ vars.AZURE_CONTAINER_RG_NAME }} --image ghcr.io/${{ env.REPO }}:${{ github.sha }} --container-name ${{ vars.AZURE_CONTAINER_APP_NAME }}
-            az containerapp update -n ${{ vars.AZURE_CONTAINER_APP_NAME }} -g ${{ vars.AZURE_CONTAINER_RG_NAME }} --cpu 2 --memory 4Gi --image ghcr.io/${{ env.REPO }}:${{ github.sha }} --container-name ${{ vars.AZURE_CONTAINER_APP_NAME }}
+            az containerapp update -n ${{ vars.AZURE_CONTAINER_APP_NAME }} -g ${{ vars.AZURE_CONTAINER_RG_NAME }} --image ghcr.io/${{ env.REPO }}-backend:${{ github.sha }} --container-name ${{ vars.AZURE_CONTAINER_APP_NAME }}
+            az containerapp update -n ${{ vars.AZURE_CONTAINER_APP_NAME }} -g ${{ vars.AZURE_CONTAINER_RG_NAME }} --cpu 2 --memory 4Gi --image ghcr.io/${{ env.REPO }}-backend:${{ github.sha }} --container-name ${{ vars.AZURE_CONTAINER_APP_NAME }}

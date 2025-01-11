@@ -20,8 +20,9 @@ conda env create -f conda.yaml
 conda activate azure-rag
 
 # Generate pinned dependencies and install/sync
-pip-compile requirements-dev.in --verbose
-pip-sync requirements-dev.txt
+pip-compile requirements.in --verbose  # create requirements.txt
+pip-compile requirements-dev.in --verbose  # create requirements-dev.txt > requirements.txt
+pip-sync requirements-dev.txt  # install requirements-dev.txt
 
 # If we need a new dependency,
 # add it to requirements[-dev].in 

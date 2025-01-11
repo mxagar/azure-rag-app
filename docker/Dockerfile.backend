@@ -1,0 +1,46 @@
+# Build the Docker image (use --no-cache if we want to force rebuild)
+#   cd .../azure-rag-app
+#   docker build [--no-cache] -f docker/Dockerfile.backend -t azure-rag-backend .
+#   docker build -f docker/Dockerfile.backend --build-arg http_proxy=$env:HTTP_PROXY --build-arg https_proxy=$env:HTTPS_PROXY -t azure-rag-backend .
+#   docker build --no-cache -f docker/Dockerfile.backend --build-arg http_proxy=$env:HTTP_PROXY --build-arg https_proxy=$env:HTTPS_PROXY -t azure-rag-backend .
+# Run the container: port-forward to our desktop 8080 port
+#   cd .../azure-rag-app
+#   docker run --rm --env-file .env -p 8080:8000 azure-rag-backend
+# Open in browser: http://localhost:8080/docs
+
+# Use Python 3.10 base image
+FROM python:3.10
+
+# Set proxy (if required)
+ARG http_proxy
+ARG https_proxy
+ENV http_proxy=${http_proxy}
+ENV https_proxy=${https_proxy}
+
+# Copy requirements.in into the container
+#COPY ./requirements.in /backend/requirements.in
+COPY ../requirements.in /backend/requirements.in
+
+# Set the working directory
+WORKDIR /backend
+
+# Install dependencies
+RUN pip install pip-tools \
+    && pip-compile requirements.in \
+    && pip install -r requirements.txt
+
+# Copy the backend code into the container
+#COPY ./backend /backend
+COPY ../backend /backend
+
+# Expose the default Uvicorn port (optional)
+# Then, we can use the -p flag to map the container port to our desktop port
+# NOTE: locally I forward it to 8080 (because I have a restriction on 8000), but on Azure, the default 8000 is used
+# so we need to change the Ingress target port from 80 to 8000 (in the Container App)
+EXPOSE 8000
+
+# Set the entrypoint for the container
+ENTRYPOINT [ "uvicorn" ]
+
+# Define the default command
+CMD [ "--host", "0.0.0.0", "--port", "8000", "api:app" ]

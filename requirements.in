@@ -1,7 +1,7 @@
 azure-identity==1.19.0
 azure-search-documents==11.5.2
 azure-ai-documentintelligence==1.0.0
-langchain[all]==0.3.13
+langchain==0.3.13
 langchain-openai==0.2.14
 langchain-community==0.3.13
 openai==1.58.1
@@ -9,3 +9,4 @@ python-dotenv==1.0.1
 fastapi==0.115.6
 uvicorn[standard]==0.34.0
 tiktoken==0.8.0
+streamlit==1.41.1
