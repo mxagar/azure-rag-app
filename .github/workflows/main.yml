@@ -1,4 +1,4 @@
-name: Trigger auto deployment for RAG app container
+name: RAG Backend - Build and deploy container
 
 #env:
 #  AZURE_CONTAINER_APP_NAME: <app-container-name>
