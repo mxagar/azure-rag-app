@@ -24,6 +24,7 @@ from langchain.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 
+from preprocessing import get_preprocessor
 
 # Load environment variables (local execution)
 CURRENT_DIR = pathlib.Path(__file__).parent.resolve()
@@ -73,7 +74,7 @@ embeddings = AzureOpenAIEmbeddings(
 )
 
 # Connect to Azure AI Search
-search = AzureSearch(
+vectorstore = AzureSearch(
     azure_search_endpoint=AZURE_SEARCH_ENDPOINT,
     azure_search_key=os.getenv("AZURE_SEARCH_API_KEY"),
     index_name=AZURE_SEARCH_INDEX_NAME,
@@ -132,7 +133,24 @@ def chatbot(query: str):
     return response
 
 
-def ingest(filenames: pathlib.Path | List[pathlib.Path]) -> None:
-    def _ingest_single_document(filename: pathlib.Path) -> None:
-        pass
-    pass
+def ingest(
+    filenames: pathlib.Path | List[pathlib.Path],
+    chunk_size: int = 1000,
+    chunk_overlap: int = 200,
+    percentage: float = 1.0,
+) -> List[str]:
+    if isinstance(filenames, pathlib.Path):
+        filenames = [filenames]
+    docs = []
+
+    for file in filenames:
+        preprocessor = get_preprocessor(file, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+        d = preprocessor.load_split(file)
+        docs.extend(d)
+
+    if percentage < 1.0:
+        docs = docs[:int(len(docs) * percentage)]
+
+    ids = vectorstore.add_documents(documents=docs)
+
+    return ids

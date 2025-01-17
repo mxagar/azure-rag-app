@@ -80,8 +80,8 @@ class Preprocessor:
 
 
 class PDFPreprocessor(Preprocessor):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, chunk_size: int = 1000, chunk_overlap: int = 200):
+        super().__init__(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
 
     def load(self, file_path: str) -> list[Document]:
         loader = PyPDFLoader(file_path)
@@ -89,8 +89,8 @@ class PDFPreprocessor(Preprocessor):
 
 
 class CSVPreprocessor(Preprocessor):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, chunk_size: int = 1000, chunk_overlap: int = 200):
+        super().__init__(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
 
     def load(self, file_path: str) -> list[Document]:
         loader = CSVLoader(file_path)
@@ -98,8 +98,8 @@ class CSVPreprocessor(Preprocessor):
 
 
 class TextPreprocessor(Preprocessor):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, chunk_size: int = 1000, chunk_overlap: int = 200):
+        super().__init__(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
 
     def load(self, file_path: str) -> list[Document]:
         loader = TextLoader(file_path)
@@ -107,8 +107,8 @@ class TextPreprocessor(Preprocessor):
 
 
 class WebPreprocessor(Preprocessor):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, chunk_size: int = 1000, chunk_overlap: int = 200):
+        super().__init__(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
 
     def load(self, url: str) -> list[Document]:
         loader = WebBaseLoader(url)
@@ -128,5 +128,5 @@ def get_preprocessor(
         return CSVPreprocessor(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
     elif format in (Format.TEXT, Format.MARKDOWN):
         return TextPreprocessor(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-    elif format in (Format.WEB):
+    elif format == Format.WEB:
         return WebPreprocessor(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
