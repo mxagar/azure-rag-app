@@ -14,20 +14,33 @@ class Format(Enum):
     WEB = 5
 
 
-def suffix2format(suffix: str) -> Format:
-    suffix = suffix.lower()
-    if suffix == "pdf":
+def infer_format(format: str) -> Format:
+    format = format.lower()
+    
+    if format.endswith(".pdf") or format == "pdf":
         return Format.PDF
-    elif suffix == "csv":
+    elif format.endswith(".csv") or format == "csv":
         return Format.CSV
-    elif suffix in ("txt", "text"):
+    elif format.endswith(".txt") or format == "txt":
         return Format.TEXT
-    elif suffix in ("md", "markdown"):
+    elif (
+        format.endswith(".md") 
+        or format.endswith(".markdown") 
+        or format == "md"
+        or format == "markdown"
+    ):
         return Format.MARKDOWN
-    elif suffix in ("http", "https", "html", "web", "url"):
+    elif (
+        format.startswith("http")
+        or format.endswith(".html")
+        or format.endswith(".htm")
+        or "://" in format
+        or format == "web"
+        or format == "url"
+    ):
         return Format.WEB
     else:
-        raise ValueError(f"Unsupported file format: {suffix}")
+        raise ValueError(f"Unsupported file format: {format}")
 
 
 class Preprocessor:
@@ -89,17 +102,17 @@ class WebPreprocessor(Preprocessor):
 
 
 def get_preprocessor(
-    suffix: Union[str, Format],
+    format: Union[str, Format],
     chunk_size: int = 1000,
     chunk_overlap: int = 200,
 ) -> Preprocessor:
-    if isinstance(suffix, str):
-        suffix = suffix2format(suffix)
-    if suffix == Format.PDF:
+    if isinstance(format, str):
+        format = infer_format(format)
+    if format == Format.PDF:
         return PDFPreprocessor(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-    elif suffix == Format.CSV:
+    elif format == Format.CSV:
         return CSVPreprocessor(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-    elif suffix in (Format.TEXT, Format.MARKDOWN):
+    elif format in (Format.TEXT, Format.MARKDOWN):
         return TextPreprocessor(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-    elif suffix in (Format.WEB):
+    elif format in (Format.WEB):
         return WebPreprocessor(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
