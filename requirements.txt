@@ -61,11 +61,6 @@ click==8.1.8
     # via
     #   streamlit
     #   uvicorn
-colorama==0.4.6
-    # via
-    #   click
-    #   tqdm
-    #   uvicorn
 cryptography==44.0.0
     # via
     #   azure-identity
@@ -87,8 +82,6 @@ gitdb==4.0.11
     # via gitpython
 gitpython==3.1.43
     # via streamlit
-greenlet==3.1.1
-    # via sqlalchemy
 h11==0.14.0
     # via
     #   httpcore
@@ -234,8 +227,6 @@ python-dotenv==1.0.1
     #   uvicorn
 pytz==2024.2
     # via pandas
-pywin32==308
-    # via portalocker
 pyyaml==6.0.2
     # via
     #   langchain
@@ -328,8 +319,8 @@ urllib3==2.3.0
     # via requests
 uvicorn[standard]==0.34.0
     # via -r requirements.in
-watchdog==6.0.0
-    # via streamlit
+uvloop==0.21.0
+    # via uvicorn
 watchfiles==1.0.3
     # via uvicorn
 websockets==14.1
