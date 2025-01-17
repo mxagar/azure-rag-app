@@ -14,6 +14,7 @@ Date: 2025-01-10
 import os
 import pathlib
 from dotenv import load_dotenv
+from typing import List
 import yaml
 
 from langchain_openai import AzureOpenAIEmbeddings, AzureChatOpenAI
@@ -129,3 +130,9 @@ def chatbot(query: str):
     response = chain.invoke(query)
 
     return response
+
+
+def ingest(filenames: pathlib.Path | List[pathlib.Path]) -> None:
+    def _ingest_single_document(filename: pathlib.Path) -> None:
+        pass
+    pass
