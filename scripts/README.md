@@ -1,4 +1,4 @@
-# Scripts
+# Scripts and Commands
 
 ```
 az containerapp show --name <your-container-app-name> --resource-group <your-resource-group-name> --query "properties.template.containers"
