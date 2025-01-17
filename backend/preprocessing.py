@@ -1,3 +1,17 @@
+"""This module contains the implementation of
+document loading and preprocessing (splitting into chunks).
+
+The ingestion of the chunks happens elsewhere.
+
+Supported formats:
+- PDF
+- CSV
+- Text: TXT, Markdown
+- Web
+
+Author: Mikel Sagardia
+Date: 2025-01-17
+"""
 from abc import abstractmethod
 from typing import Union
 from enum import Enum
