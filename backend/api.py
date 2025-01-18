@@ -50,7 +50,7 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import RedirectResponse
 
-from rag import chatbot, RAG_API_KEY
+from rag import chat, RAG_API_KEY
 
 
 # FastAPI app
@@ -71,5 +71,5 @@ def root():
 def ask(body: Body, credentials: HTTPAuthorizationCredentials = Depends(security)):
     if credentials.credentials != RAG_API_KEY:
         raise HTTPException(status_code=401, detail="Unauthorized")
-    chatbot_response = chatbot(body.query)
+    chatbot_response = chat(body.query)
     return {'response': chatbot_response}
