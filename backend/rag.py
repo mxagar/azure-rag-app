@@ -23,8 +23,10 @@ from langchain_community.retrievers import AzureAISearchRetriever
 from langchain.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
+from langchain_core.documents.base import Document
 
 from preprocessing import get_preprocessor
+
 
 # Load environment variables (local execution)
 CURRENT_DIR = pathlib.Path(__file__).parent.resolve()
@@ -60,6 +62,7 @@ def load_config(config_path: str | pathlib.Path) -> dict:
 
     return config
 
+
 config_path = CURRENT_DIR / "config.yaml"
 config = load_config(config_path=config_path)
 
@@ -87,7 +90,7 @@ retriever = AzureAISearchRetriever(
     api_key=os.getenv("AZURE_SEARCH_API_KEY"),
     index_name=AZURE_SEARCH_INDEX_NAME,
     service_name=AZURE_SEARCH_ENDPOINT,
-    top_k=1,
+    top_k=config.get("retriever_top_k", 3),
 )
 
 # Initialize Azure OpenAI - Chat Model
@@ -120,7 +123,7 @@ def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
 
 
-def chatbot(query: str):
+def chat(query: str):
     history = create_prompt()
     chain = (
         {"context": retriever | format_docs, "question": RunnablePassthrough()}
@@ -134,17 +137,17 @@ def chatbot(query: str):
 
 
 def ingest(
-    filenames: pathlib.Path | List[pathlib.Path],
+    filenames: str | pathlib.Path | List[pathlib.Path|str],
     chunk_size: int = 1000,
     chunk_overlap: int = 200,
     percentage: float = 1.0,
 ) -> List[str]:
-    if isinstance(filenames, pathlib.Path):
+    if isinstance(filenames, pathlib.Path) or isinstance(filenames, str):
         filenames = [filenames]
     docs = []
 
     for file in filenames:
-        preprocessor = get_preprocessor(file, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+        preprocessor = get_preprocessor(str(file), chunk_size=chunk_size, chunk_overlap=chunk_overlap)
         d = preprocessor.load_split(file)
         docs.extend(d)
 
@@ -154,3 +157,20 @@ def ingest(
     ids = vectorstore.add_documents(documents=docs)
 
     return ids
+
+
+def retrieve(
+    query: str,
+    top_k: int = 1
+) -> List[Document]:
+    docs = retriever.invoke(query)
+
+    config_top_k = config.get("retriever_top_k", None)
+    if config_top_k is not None:
+        # Sort and filter the documents by the score in descending order and pick the top k
+        k = min(top_k, len(docs))  # Ensure k is not greater than the number of documents
+        top_k_docs = sorted(docs, key=lambda doc: doc.metadata['@search.score'], reverse=True)[:k]
+
+        return top_k_docs
+
+    return docs
