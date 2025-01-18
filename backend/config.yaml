@@ -1,3 +1,4 @@
 "chat_temperature": 0.7
 "chat_max_tokens": 2000
 "chat_top_p": 0.8
+"retriever_top_k": 5
