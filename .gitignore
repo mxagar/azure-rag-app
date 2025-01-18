@@ -163,3 +163,8 @@ cython_debug/
 .vscode
 .DS_Store
 .azure_credentials
+
+# Terraform
+terraform.tfvars
+.terraform
+.terraform.lock.hcl
