@@ -5,6 +5,7 @@
 
 - [Infrastructure](#infrastructure)
   - [Table of Contents](#table-of-contents)
+  - [Terraform](#terraform)
   - [Overview](#overview)
   - [Azure OpenAI](#azure-openai)
   - [Azure AI Search](#azure-ai-search)
@@ -26,6 +27,67 @@
   - [API Best Practices](#api-best-practices)
     - [Use HTTP Error codes](#use-http-error-codes)
     - [Accept request types sparingly](#accept-request-types-sparingly)
+
+## Terraform
+
+First:
+
+- [Install Terraform](https://developer.hashicorp.com/terraform/tutorials/azure-get-started/install-cli)
+- [Install Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
+- [Create an Azure account](https://azure.microsoft.com/en-us/pricing/purchase-options/azure-account)
+
+Then, we can verify our installations on the terminal:
+
+```bash
+# Verify Terraform Installation
+terraform -help
+
+# Log in to Azure: Available subscriptions should be returned
+az login
+```
+
+Service Principal:
+
+```bash
+# Get subscription id: AZURE_SUBSCRIPTION_ID
+az account show --query "id" -o tsv
+
+# Create Service Principal account: replace AZURE_SUBSCRIPTION_ID
+# The output contains (save them): appId (Client ID), password (Client Secret), tenant (Tenant ID)
+az ad sp create-for-rbac --name "CICD" --role "Contributor" --scopes /subscriptions/$AZURE_SUBSCRIPTION_ID --sdk-auth
+```
+
+Save the Azure secrets and variables in `terraform.tfvars`:
+
+```hcl
+client_id       = "your-client-id"
+client_secret   = "your-client-secret"
+subscription_id = "your-subscription-id"
+tenant_id       = "your-tenant-id"
+```
+
+Since `terraform.tfvars` is added to `.gitignore`, usually a `terraform.tfvars.example` is created (with dummy content) to signal other developers they need to set one.
+
+Create a `main.tf` where the resources will be defined; for now, we can point to the variables/secrets we have defined in `terraform.tfvars`:
+
+```hcl
+provider "azurerm" {
+  features {}
+
+  client_id       = var.client_id
+  client_secret   = var.client_secret
+  subscription_id = var.subscription_id
+  tenant_id       = var.tenant_id
+}
+```
+
+Check account can be reached:
+
+```bash
+cd .../infra
+terraform init
+```
+
 
 ## Overview
 
