@@ -27,8 +27,7 @@ import textwrap
 # Load environment variables (local execution)
 CURRENT_DIR = pathlib.Path(__file__).parent.resolve()
 ROOT_DIR = CURRENT_DIR.parent
-#ENV_FILE = os.path.join(ROOT_DIR, ".env")
-ENV_FILE = os.path.join(ROOT_DIR, ".env_terraform")
+ENV_FILE = os.path.join(ROOT_DIR, ".env")
 try:
     _ = load_dotenv(ENV_FILE, override=True)
 except Exception:

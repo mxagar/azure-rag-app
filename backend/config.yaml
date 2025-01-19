@@ -2,4 +2,4 @@
 "chat_max_tokens": 2000
 "chat_top_p": 0.8
 "retriever_top_k": 5
-"env_file": ".env_terraform"
+"env_file": ".env"
