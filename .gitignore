@@ -121,6 +121,7 @@ celerybeat.pid
 
 # Environments
 .env
+.env*
 .venv
 env/
 venv/
@@ -163,8 +164,3 @@ cython_debug/
 .vscode
 .DS_Store
 .azure_credentials
-
-# Terraform
-terraform.tfvars
-.terraform
-.terraform.lock.hcl
