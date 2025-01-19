@@ -78,4 +78,4 @@ jobs:
               --image ghcr.io/${{ env.REPO }}-backend:${{ github.sha }} \
               --container-name ${{ vars.AZURE_CONTAINER_APP_NAME }}
             az containerapp update -n ${{ vars.AZURE_CONTAINER_APP_NAME }} -g ${{ vars.AZURE_CONTAINER_RG_NAME }} --image ghcr.io/${{ env.REPO }}-backend:${{ github.sha }} --container-name ${{ vars.AZURE_CONTAINER_APP_NAME }}
-            az containerapp update -n ${{ vars.AZURE_CONTAINER_APP_NAME }} -g ${{ vars.AZURE_CONTAINER_RG_NAME }} --cpu 2 --memory 4Gi --image ghcr.io/${{ env.REPO }}-backend:${{ github.sha }} --container-name ${{ vars.AZURE_CONTAINER_APP_NAME }}
+            az containerapp update -n ${{ vars.AZURE_CONTAINER_APP_NAME }} -g ${{ vars.AZURE_CONTAINER_RG_NAME }} --cpu 1 --memory 2Gi --image ghcr.io/${{ env.REPO }}-backend:${{ github.sha }} --container-name ${{ vars.AZURE_CONTAINER_APP_NAME }}
