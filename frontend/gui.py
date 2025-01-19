@@ -27,18 +27,19 @@ import textwrap
 # Load environment variables (local execution)
 CURRENT_DIR = pathlib.Path(__file__).parent.resolve()
 ROOT_DIR = CURRENT_DIR.parent
-ENV_FILE = os.path.join(ROOT_DIR, '.env')
+#ENV_FILE = os.path.join(ROOT_DIR, ".env")
+ENV_FILE = os.path.join(ROOT_DIR, ".env_terraform")
 try:
     _ = load_dotenv(ENV_FILE, override=True)
 except Exception:
     pass
 
 # Retrieve variables
-RAG_API_URL = "http://127.0.0.1:8080/ask"
+RAG_API_URL = os.getenv("RAG_API_URL", "http://127.0.0.1:8080/ask")
 
 # Proxy configuration, if required
-PROXIES = {"http": None, "https": None}  # LOCAL - No proxies...
-#PROXIES={"http": os.getenv("HTTP_PROXY", None), "https": os.getenv("HTTPS_PROXY", None)}  # AZURE - Use this only if you have any proxies...
+#PROXIES = {"http": None, "https": None}  # LOCAL - No proxies...
+PROXIES={"http": os.getenv("HTTP_PROXY", None), "https": os.getenv("HTTPS_PROXY", None)}  # AZURE - Use this only if you have any proxies...
 
 # Streamlit page configuration
 st.set_page_config(page_title="Chatbot", layout="wide")
