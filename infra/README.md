@@ -6,6 +6,11 @@
 - [Infrastructure](#infrastructure)
   - [Table of Contents](#table-of-contents)
   - [Terraform](#terraform)
+    - [Initial Setup](#initial-setup)
+    - [Configuration Files](#configuration-files)
+    - [Resource Names](#resource-names)
+    - [Deploying All Resources](#deploying-all-resources)
+    - [Contents in `.env`](#contents-in-env)
   - [Overview](#overview)
   - [Azure OpenAI](#azure-openai)
   - [Azure AI Search](#azure-ai-search)
@@ -29,6 +34,10 @@
     - [Accept request types sparingly](#accept-request-types-sparingly)
 
 ## Terraform
+
+Check the [Terraform Azure Reference](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs).
+
+### Initial Setup
 
 First:
 
@@ -59,7 +68,7 @@ az ad sp create-for-rbac --name "CICD" --role "Contributor" --scopes /subscripti
 
 Save the Azure secrets and variables in `terraform.tfvars`:
 
-```hcl
+```typescript
 client_id       = "your-client-id"
 client_secret   = "your-client-secret"
 subscription_id = "your-subscription-id"
@@ -70,7 +79,7 @@ Since `terraform.tfvars` is added to `.gitignore`, usually a `terraform.tfvars.e
 
 Create a `main.tf` where the resources will be defined; for now, we can point to the variables/secrets we have defined in `terraform.tfvars`:
 
-```hcl
+```typescript
 provider "azurerm" {
   features {}
 
@@ -87,6 +96,165 @@ Check account can be reached:
 cd .../infra
 terraform init
 ```
+
+### Configuration Files
+
+Now, create a `variables.tf`; note the goal of each file (all files are automatically discovered by `terraform`):
+
+- `main.tf`: it defines the `resources`, and uses the `variables` and their values defined in other files.
+- `variables.tf`: it defines the `variables` and gives them a default value.
+- `terraform.tfvars`: it contains the variable values, not published!
+
+`variables.tf`:
+
+```typescript
+variable "resource_group_name" {
+  description = "The name of the resource group"
+  type        = string
+  default     = "rg-default"
+}
+```
+
+`terraform.tfvars`:
+
+```typescript
+// ...
+
+resource_group_name = "rg-rag-app-demo"
+resource_group_location = "West Europe"
+```
+
+`main.tf`:
+
+```typescript
+//...
+
+resource "azurerm_resource_group" "main" {
+  name     = var.resource_group_name
+  location = var.resource_group_location
+}
+```
+
+### Resource Names
+
+Note that `resources` are defined as follows:
+
+```typescript
+resource "<RESOURCE_TYPE>" "<LOGICAL_NAME>" {
+  # Configuration
+}
+```
+
+Typical `<RESOURCE_TYPE>` values are:
+
+- `azurerm_resource_group`: An Azure resource group.
+- `azurerm_virtual_network`: An Azure virtual network.
+- `aws_s3_bucket`: An S3 bucket in AWS.
+
+The `<LOGICAL_NAME>` is a unique name used to refer to the resource within the configuration. It is arbitrary but should describe the resource’s purpose clearly. Example names:
+- `"main"`: A simple and common default.
+- `"networking"`: For a resource group related to networking.
+- `"production"`: For a production resource group.
+
+To reference the resources elsewhere:
+
+```typescript
+value = azurerm_resource_group.main.name
+```
+
+### Deploying All Resources
+
+The following resources are defined in `main.tf`, all associated to the resource group (RG) `azurerm_resource_group.main.name`, and using the variables defined in `variables.tf` and `terraform.tfvars`:
+
+- Azure OpenAI; later, we will use the models `gpt-4o-mini` and `text-embedding-ada-002`
+  - Tier: Standard
+  - Location West Europe
+  - Name: open-ai-demo
+- Azure AI Search
+  - Tier: Free
+  - Location: West Europe
+  - Name: ai-search-demo
+- Azure Container App
+  - Location: West Europe
+  - Name: backend-container-demo
+  - When a Container App is deployed via the Web UI, some additional services are created automatically, like an app environment and log analytics, etc.; in Terraform, we need to create them explicitly. We define only the environment.
+    - Environment name: backend-container-env-demo
+  - Note: the container image will be set later per `az` CLI command; if one must be chosen, pick a simple Hello World image.
+
+See the files:
+
+- [`main.tf`](main.tf)
+- [`variables.tf`](variables.tf)
+- [`terraform.tfvars`](terraform.tfvars) or [`terraform.tfvars.example`](terraform.tfvars.example)
+
+To carry out the deployment:
+
+```bash
+cd .../infra
+
+# Initialize working directory and download required plugins
+terraform init
+
+# Check syntax and configuration errors
+terraform validate
+
+# Review the changes Terraform will make without actually applying them
+# This will create a file named tfplan that you can use to apply changes later
+terraform plan -out=tfplan
+
+# Deploy plan
+terraform apply tfplan
+# If we haven't saved the plan tfplan, we can directly apply
+terraform apply
+# Once the deployment is complete, Terraform will automatically display the outputs
+
+# View outputs
+terraform output
+# Access sensitive outputs by outputing a pipeable JSON format
+terraform output -json
+```
+
+For each deployed resource, pick/output the important secrets and variables, and put them into `.env`.
+A **better practice would be to deploy a Key Vault and save them there!**.
+
+Steps to carry out after deployment on the Azure web UI:
+
+- Pick any missing variable/secret.
+- Index some documents: [`notebooks/ingest_data.ipynb`](../notebooks/ingest_data.ipynb).
+- Set the ingress target port of the Container App to `8000`, if not done yet (in the new `main.tf` I do it already): Container App > Settings > Ingress.
+- Activate the `content_vector` in the index of Azure AI Search: Azure AI Search > Indexes > Index > Fields, ..., Save.
+
+### Contents in `.env`
+
+In the following, a example `.env` is shown.
+
+A **better practice would be to deploy a Key Vault and save them there!**.
+
+```bash
+# Azure OpenAI
+AZURE_OPENAI_ENDPOINT_URI=xxx # Long URL, Get from Azure
+AZURE_OPENAI_ENDPOINT=xxx # Short URL, Get from Azure
+AZURE_OPENAI_API_VERSION=xxx # Get from Azure
+DEPLOYMENT_NAME=xxx # Set and get from Azure
+CHAT_DEPLOYMENT_NAME=xxx # Set and get from Azure
+EMBEDDING_DEPLOYMENT_NAME=xxx # Set and get from Azure
+# Azure AI Search
+AZURE_SEARCH_ENDPOINT=xxx # Get from Azure
+AZURE_SEARCH_INDEX_NAME=xxx # Set and get from Azure
+# Azure Container App
+AZURE_CONTAINER_APP_NAME=xxx # Set and get from Azure
+AZURE_CONTAINER_RG_NAME=xxx # Set and get from Azure
+
+# -- SECRETS --
+AZURE_SUBSCRIPTION_ID=xxx # Get from Azure
+AZURE_OPENAI_API_KEY=xxx # Get from Azure
+AZURE_SEARCH_API_KEY=xxx # Get from Azure
+GH_PAT=xxx # Get from Github
+RAG_API_KEY=xxx # Set using secrets.token_urlsafe(32)
+```
+
+If we use the `.env` file locally, we need to copy the secrets to the Github repository settings.
+
 
 
 ## Overview
