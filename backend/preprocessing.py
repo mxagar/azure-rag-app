@@ -16,7 +16,7 @@ from abc import abstractmethod
 from typing import Union
 from enum import Enum
 from langchain.schema import Document
-from langchain.document_loaders import PyPDFLoader, CSVLoader, TextLoader, WebBaseLoader
+from langchain_community.document_loaders import PyPDFLoader, CSVLoader, TextLoader, WebBaseLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 
