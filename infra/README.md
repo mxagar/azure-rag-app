@@ -10,6 +10,7 @@
     - [Configuration Files](#configuration-files)
     - [Resource Names](#resource-names)
     - [Deploying All Resources](#deploying-all-resources)
+      - [Possible Issues](#possible-issues)
     - [Contents in `.env`](#contents-in-env)
   - [Overview](#overview)
   - [Azure OpenAI](#azure-openai)
@@ -55,7 +56,7 @@ terraform -help
 az login
 ```
 
-Service Principal:
+Create a **Service Principal**, i.e., a robot account which will be used for programmatic deployments:
 
 ```bash
 # Get subscription id: AZURE_SUBSCRIPTION_ID
@@ -105,9 +106,11 @@ Now, create a `variables.tf`; note the goal of each file (all files are automati
 - `variables.tf`: it defines the `variables` and gives them a default value.
 - `terraform.tfvars`: it contains the variable values, not published!
 
-`variables.tf`:
+`variables.tf` snippet:
 
 ```typescript
+//...
+
 variable "resource_group_name" {
   description = "The name of the resource group"
   type        = string
@@ -115,7 +118,7 @@ variable "resource_group_name" {
 }
 ```
 
-`terraform.tfvars`:
+`terraform.tfvars` snippet:
 
 ```typescript
 // ...
@@ -124,7 +127,7 @@ resource_group_name = "rg-rag-app-demo"
 resource_group_location = "West Europe"
 ```
 
-`main.tf`:
+`main.tf` snippet:
 
 ```typescript
 //...
@@ -162,6 +165,31 @@ To reference the resources elsewhere:
 value = azurerm_resource_group.main.name
 ```
 
+Also, note that sometimes resource names need to be unique globally.
+To that end, it is a common practice to append an alphanumeric suffix to any resource name, obtained by hashing constant values for each app, e.g., the subscription id and the RG location.
+This is accomplished in `main.tf`:
+
+```typescript
+//...
+
+locals {
+  // Concatenate static values to create a unique input for hashing
+  // We create a unique string for our deployment
+  hash_input = join("-", [var.subscription_id, var.resource_group_name, var.resource_group_location])
+}
+
+//...
+
+// We append to the var.openai_name the first 6 characters of the local.hash_input
+resource "azurerm_cognitive_account" "openai" {
+  name                = "${var.openai_name}-${substr(md5(local.hash_input), 0, 6)}"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  kind                = "OpenAI"
+  sku_name            = "S0" # Standard Tier
+}
+```
+
 ### Deploying All Resources
 
 The following resources are defined in `main.tf`, all associated to the resource group (RG) `azurerm_resource_group.main.name`, and using the variables defined in `variables.tf` and `terraform.tfvars`:
@@ -183,9 +211,9 @@ The following resources are defined in `main.tf`, all associated to the resource
 
 See the files:
 
-- [`main.tf`](main.tf)
-- [`variables.tf`](variables.tf)
-- [`terraform.tfvars`](terraform.tfvars) or [`terraform.tfvars.example`](terraform.tfvars.example)
+- [`main.tf`](main.tf): definition of all the resources and their properties.
+- [`variables.tf`](variables.tf): definition of variables with names, types and default values to be changed.
+- [`terraform.tfvars`](terraform.tfvars) or [`terraform.tfvars.example`](terraform.tfvars.example): explicit variable values.
 
 To carry out the deployment:
 
@@ -217,12 +245,26 @@ terraform output -json
 For each deployed resource, pick/output the important secrets and variables, and put them into `.env`.
 A **better practice would be to deploy a Key Vault and save them there!**.
 
+Note that even though we write the names
+
 Steps to carry out after deployment on the Azure web UI:
 
 - Pick any missing variable/secret.
 - Index some documents: [`notebooks/ingest_data.ipynb`](../notebooks/ingest_data.ipynb).
 - Set the ingress target port of the Container App to `8000`, if not done yet (in the new `main.tf` I do it already): Container App > Settings > Ingress.
 - Activate the `content_vector` in the index of Azure AI Search: Azure AI Search > Indexes > Index > Fields, ..., Save.
+
+Then, we need to deploy the backend application to the Container App.
+That happens by triggering the Github Action workflow.
+But, prior to that:
+
+- We need to create a Github Personal Access Token: `GH_PAT`.
+- We need to create a `RAG_API_KEY`, i.e., a password known to the backend which is requested whenever we want to use it. 
+- We need to set all these variables in Github.
+
+#### Possible Issues
+
+- Restart container?
 
 ### Contents in `.env`
 
@@ -244,6 +286,8 @@ AZURE_SEARCH_INDEX_NAME=xxx # Set and get from Azure
 # Azure Container App
 AZURE_CONTAINER_APP_NAME=xxx # Set and get from Azure
 AZURE_CONTAINER_RG_NAME=xxx # Set and get from Azure
+RAG_API_URL=xxx # Get from Azure: The Container App endpoint
+
 
 # -- SECRETS --
 AZURE_SUBSCRIPTION_ID=xxx # Get from Azure
