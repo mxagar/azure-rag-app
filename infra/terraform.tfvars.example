@@ -1,4 +1,16 @@
+# Azure Credentials
 client_id       = "your-client-id-here"
 client_secret   = "your-client-secret-here"
 subscription_id = "your-subscription-id-here"
 tenant_id       = "your-tenant-id-here"
+# Resource group
+resource_group_name = "rg-app-name"
+resource_group_location = "West Europe"
+# Azure OpenAI Service
+openai_name = "open-ai-service-name"
+# Azure AI Search
+ai_search_name = "ai-search-service-name"
+# Azure Container App Environment
+backend_container_env_name = "container-app-env-name"
+# Azure Container App
+backend_container_name = "container-app-name"
