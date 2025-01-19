@@ -97,8 +97,8 @@ resource "azurerm_container_app" "backend_container" {
     container {
       name   = "backend-default"
       image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest" # Placeholder Hello World image
-      cpu    = 0.5
-      memory = "1.0Gi"
+      cpu    = 0.25
+      memory = "0.5Gi"
     }
   }
 
