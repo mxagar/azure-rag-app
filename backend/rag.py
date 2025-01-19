@@ -28,26 +28,9 @@ from langchain_core.documents.base import Document
 from preprocessing import get_preprocessor
 
 
-# Load environment variables (local execution)
+# Define paths
 CURRENT_DIR = pathlib.Path(__file__).parent.resolve()
 ROOT_DIR = CURRENT_DIR.parent
-ENV_FILE = os.path.join(ROOT_DIR, '.env')
-try:
-    _ = load_dotenv(ENV_FILE, override=True)
-except Exception:
-    pass
-
-
-# Retrieve variables
-AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
-AZURE_OPENAI_ENDPOINT_URI = os.getenv("AZURE_OPENAI_ENDPOINT_URI")
-EMBEDDING_DEPLOYMENT_NAME = os.getenv("EMBEDDING_DEPLOYMENT_NAME")
-CHAT_DEPLOYMENT_NAME = os.getenv("CHAT_DEPLOYMENT_NAME")
-AZURE_OPENAI_API_VERSION = os.getenv("AZURE_OPENAI_API_VERSION")
-AZURE_SEARCH_ENDPOINT = os.getenv("AZURE_SEARCH_ENDPOINT")
-AZURE_SEARCH_INDEX_NAME = os.getenv("AZURE_SEARCH_INDEX_NAME")
-# RAG API Key
-RAG_API_KEY = os.getenv("RAG_API_KEY")
 
 
 # Load configuration
@@ -65,6 +48,26 @@ def load_config(config_path: str | pathlib.Path) -> dict:
 
 config_path = CURRENT_DIR / "config.yaml"
 config = load_config(config_path=config_path)
+
+
+# Load environment variables (local execution)
+ENV_FILE = os.path.join(ROOT_DIR, config.get("env_file", ".env"))
+try:
+    _ = load_dotenv(ENV_FILE, override=True)
+except Exception:
+    pass
+
+
+# Retrieve variables
+AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
+AZURE_OPENAI_ENDPOINT_URI = os.getenv("AZURE_OPENAI_ENDPOINT_URI")
+EMBEDDING_DEPLOYMENT_NAME = os.getenv("EMBEDDING_DEPLOYMENT_NAME")
+CHAT_DEPLOYMENT_NAME = os.getenv("CHAT_DEPLOYMENT_NAME")
+AZURE_OPENAI_API_VERSION = os.getenv("AZURE_OPENAI_API_VERSION")
+AZURE_SEARCH_ENDPOINT = os.getenv("AZURE_SEARCH_ENDPOINT")
+AZURE_SEARCH_INDEX_NAME = os.getenv("AZURE_SEARCH_INDEX_NAME")
+# RAG API Key
+RAG_API_KEY = os.getenv("RAG_API_KEY")
 
 
 # Connect to Azure OpenAI - Embeddings Model
