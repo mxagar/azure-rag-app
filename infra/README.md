@@ -264,7 +264,7 @@ But, prior to that:
 
 #### Possible Issues
 
-- Restart container?
+- Restart container? Log Stream
 
 ### Contents in `.env`
 
