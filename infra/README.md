@@ -26,7 +26,7 @@ This document is a detailed manual of how to approach both cases without much ex
     - [Deploying All Resources](#deploying-all-resources)
     - [Steps to Carry Out After the Deployment of the Azure Resources](#steps-to-carry-out-after-the-deployment-of-the-azure-resources)
     - [Possible Issues](#possible-issues)
-    - [Contents in `.env`](#contents-in-env)
+    - [Summary of Secrets and Variables: Contents in `.env` and Github Settings](#summary-of-secrets-and-variables-contents-in-env-and-github-settings)
   - [Overview](#overview)
   - [Azure OpenAI](#azure-openai)
   - [Azure AI Search](#azure-ai-search)
@@ -272,6 +272,8 @@ For each deployed resource, we need to pick/output the important secrets and var
 
 ### Steps to Carry Out After the Deployment of the Azure Resources
 
+<!-- HERE! -->
+
 Once the Azure resources have been deployed, 
 
 - Pick any missing variable/secret.
@@ -292,7 +294,7 @@ But, prior to that:
 - Restart container? 
 - Container App: Monitoring > Log Stream
 
-### Contents in `.env`
+### Summary of Secrets and Variables: Contents in `.env` and Github Settings
 
 In the following, a example `.env` is shown.
 
