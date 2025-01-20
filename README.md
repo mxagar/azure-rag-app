@@ -9,6 +9,7 @@ The original idea/code is from [alfredodeza/azure-rag](https://github.com/alfred
 
 - A simple Streamlit-based frontend is included here.
 - The backend code is refactored into logical modules: API, RAG functionalities, etc.
+- Terraform is used to deploy the required Azure services.
 - ...
 
 The present repository uses a simple CSV as the unique document known to the chatbot, but it can be easily modified to work with any documents, as long as our Azure tiers allow that.
@@ -27,7 +28,7 @@ If your are interested in my notes/guide on the course, you can visit [mxagar/ge
   - [Setup](#setup)
     - [Environment: Local Development](#environment-local-development)
     - [Infrastructure: Deployment of Azure Services](#infrastructure-deployment-of-azure-services)
-    - [General Installation (Docker)](#general-installation-docker)
+    - [Docker Container of the Application](#docker-container-of-the-application)
     - [Data Ingestion](#data-ingestion)
   - [How to Run This](#how-to-run-this)
     - [Running the Backend Locally](#running-the-backend-locally)
@@ -117,9 +118,12 @@ The chatbot is deployed as an Azure Container App. However, prior to that, sever
 
 Once the necessary resources have been created, a Github workflow is manually triggered to build & push the app image(s), and deploy them to Azure.
 
-Check [`infra/README.md`](./infra/README.md) for a detailed explanation.
+Check [`infra/README.md`](./infra/README.md) for a detailed explanation:
 
-### General Installation (Docker)
+- Manual deployment of the necessary Azure services is explained (i.e., using the Azure Portal)
+- **and IaC deployment of the services is also showcased using Terraform.**
+
+### Docker Container of the Application
 
 The folder [`docker/`](./docker) contains the necessary image definitions; the Dockerfile headers contain the build and run commands, e.g., in [`Dockerfile.backend`](./docker/Dockerfile.backend):
 
@@ -142,16 +146,31 @@ Note that for running the image containers
 
 ### Data Ingestion
 
-Data ingestion can be carried out after all the Azure resources have been set up. The convenience notebook [`notebooks/ingest_data.ipynb`](./notebooks/ingest_data.ipynb) shows how to perform it.
+Data ingestion can be carried out after all the Azure resources have been set up.
+The convenience notebook [`notebooks/ingest_data.ipynb`](./notebooks/ingest_data.ipynb) shows how to perform it.
+Currently, these formats are supported: CSV, PDF, Markdown, website URLs.
+
+```python
+FILENAMES = [
+    ".../data/my-csv.csv",
+    ".../data/my-pdf.pdf",
+    ".../data/my-md.md",
+    "https://www.example-website.html",
+]
+
+ids = ingest(
+    filenames=FILENAMES,
+    chunk_size=1000,
+    chunk_overlap=200,
+)
+```
 
 ## How to Run This
 
 There are several ways to run the RAG application; for all of them, first
 
-- the Azure infrastructure needs to be deployed first, as explained in [Infrastructure: Deployment of Azure Services](#infrastructure-deployment-of-azure-services).
+- the Azure infrastructure needs to be deployed first, as explained in [Infrastructure: Deployment of Azure Services](#infrastructure-deployment-of-azure-services)
 - and the data/documents needs to be ingested, as shown in [`notebooks/ingest_data.ipynb`](./notebooks/ingest_data.ipynb).
-
-Basic usage of the Azure services via the LangChain library is showcased in the notebook [`notebooks/azure_search_rag.ipynb`](./notebooks/azure_search_rag.ipynb).
 
 Once the infrastructure is setup and all the secrets/keys are known, we can:
 
@@ -167,16 +186,22 @@ The following subsections give details for all those operation modi.
 
 ### Running the Backend Locally
 
-Assuming the Azure resources have been launched successfully and the documents have been ingested, we can build the backend image and run it locally:
+Assuming the Azure resources have been launched successfully and the documents have been ingested, we can build the backend image and run it locally as follows:
 
 ```bash
-# Start backend, e.g., locally
+# Start backend locally
 cd .../azure-rag-app
 docker run --rm --env-file .env -p 8080:8000 azure-rag-backend    
 # Open browser and go to http://localhost:8080/docs
 ```
 
-This local backend serves the RAG API in [http://localhost:8080](http://localhost:8080), with the endpoints defined in [`backend/api.py`](./backend/api.py). We can check the swagger and try the endpoints
+This local backend serves the RAG API in [http://localhost:8080](http://localhost:8080), with the endpoints defined in [`backend/api.py`](./backend/api.py).
+We can check the swagger and try the endpoints.
+
+![FastAPI](./assets/fast_api.png)
+
+:warning: Note that we will need an authorization secret (`RAG_API_KEY`) to use the backend API.
+This secret is created by the deployer when setting up the [Infrastructure](#infrastructure-deployment-of-azure-services); its goal is to require a minimal authorization of our publicly exposed API and avoid misusage. The notebook [`notebooks/utils.ipynb`](./notebooks/utils.ipynb) shows how to create a secret.
 
 ### Using the Cloud Deployment of the Backend
 
@@ -194,7 +219,31 @@ Once the deployment is carried out, the backend API should be accessible in the 
 
 ### API
 
-The notebook [`notebooks/test_api.ipynb`](./notebooks/test_api.ipynb) shows how to use the backend API, both the local and the cloud deployment.
+The notebook [`notebooks/test_api.ipynb`](./notebooks/test_api.ipynb) shows how to use the backend API, both the local and the cloud deployment:
+
+```python
+import requests
+import os
+
+url = "http://127.0.0.1:8080/ask"  # Local deployment, update the URL for the cloud deployment
+payload = {"query": "Which is the best wine?"}
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"Bearer {os.getenv('RAG_API_KEY')}",
+}
+
+response = requests.post(
+    url,
+    json=payload,
+    headers=headers,
+    proxies={"http": os.getenv("HTTP_PROXY", None), "https": os.getenv("HTTPS_PROXY", None)}
+)
+
+if response.status_code == 200:
+    print(response.json().get("response"))
+else:
+    print("Error:", response.status_code)
+```
 
 ### GUI
 
@@ -210,11 +259,17 @@ streamlit run frontend/gui.py
 
 ## Notes on Retrieval Augmented Generation
 
+:construction:
+
+[`notebooks/azure_search_rag.ipynb`](./notebooks/azure_search_rag.ipynb)
+
 TBD.
 
 ## Improvements
 
 - [x] Use Terraform IaC to deploy Azure resources
+- [ ] Use Azure Key Vault to store the secrets
+- [ ] Deploy the frontend into another Container App
 - [ ] Try Document Intelligence for document parsing
 - [ ] Try query transformation techniques
   - Rewrite to be a more general question
@@ -228,9 +283,9 @@ TBD.
 
 For ideas about techniques to improve a vanilla RAG, check: [mxagar/RAG_from_Scratch](https://github.com/mxagar/generative_ai_udacity/tree/main/06_RAGs_DeepDive/01_RAG_from_Scratch).
 
-
 ## Related Links
 
+- Similar project: [Retrieval-Augmented Generation (RAG) - Bea Stollnitz](https://bea.stollnitz.com/blog/rag/).
 - My notes on the LangChain tutorial [RAG from Scratch by Langchain (Youtube & Freecodecamp)](https://www.youtube.com/watch?v=sVcwVQRHIc8): [mxagar/generative_ai_udacity/06_RAGs_DeepDive/01_RAG_from_Scratch](https://github.com/mxagar/generative_ai_udacity/tree/main/06_RAGs_DeepDive/01_RAG_from_Scratch).
 - My notes on the Coursera course [Operationalizing LLMs on Azure](https://www.coursera.org/learn/llmops-azure): [mxagar/generative_ai_udacity/06_RAGs_DeepDive/02_Azure_LLMs](https://github.com/mxagar/generative_ai_udacity/tree/main/06_RAGs_DeepDive/02_Azure_LLMs).
 - My personal notes on the [Udacity Generative AI Nanodegree](https://www.udacity.com/course/generative-ai--nd608): [mxagar/generative_ai_udacity](https://github.com/mxagar/generative_ai_udacity).
