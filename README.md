@@ -208,6 +208,7 @@ TBD.
 
 ## Improvements
 
+- [x] Use Terraform IaC to deploy Azure resources
 - [ ] Try Document Intelligence for document parsing
 - [ ] Try query transformation techniques
   - Rewrite to be a more general question
@@ -218,6 +219,9 @@ TBD.
   - Try LLM-guided retrieval routing
   - Combine retrieved documents by re-ranking them or by applying reciprocal rank fusion
 - [ ] Try agentic/self-reflective approaches, i.e., let an LLM assess the value of the output and improve answer if necessary
+
+For ideas about techniques to improve a vanilla RAG, check: [mxagar/RAG_from_Scratch](https://github.com/mxagar/generative_ai_udacity/tree/main/06_RAGs_DeepDive/01_RAG_from_Scratch).
+
 
 ## Related Links
 
