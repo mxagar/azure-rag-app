@@ -1,5 +1,19 @@
 # Infrastructure
 
+In order to deploy our application backend, we need to first instantiate the Azure services we are going to use; these are:
+
+- Azure AI Search
+- Azure OpenAI
+- Azure Container App
+
+We can do that
+
+- "manually" using the Azure Portal UI
+- or programmatically, e.g., via Terraform IaC.
+
+In both cases, we need a Docker image registry; I have used Github.
+
+This document is a detailed manual of how to approach both cases without much experience; it is intended to be read from beginning to end, whereby advanced users can skip some parts.
 
 ## Table of Contents
 
@@ -10,7 +24,8 @@
     - [Configuration Files](#configuration-files)
     - [Resource Names](#resource-names)
     - [Deploying All Resources](#deploying-all-resources)
-      - [Possible Issues](#possible-issues)
+    - [Steps to Carry Out After the Deployment of the Azure Resources](#steps-to-carry-out-after-the-deployment-of-the-azure-resources)
+    - [Possible Issues](#possible-issues)
     - [Contents in `.env`](#contents-in-env)
   - [Overview](#overview)
   - [Azure OpenAI](#azure-openai)
@@ -36,7 +51,13 @@
 
 ## Terraform
 
-Check the [Terraform Azure Reference](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs).
+Deploying cloud services via web UI is less than optimal, because it's tedious and non-reproducible.
+
+To the rescue comes Terraform, which enables **Infrastructure as Code (IaC)**.
+
+This section is a primer on Terraform and shows how to apply it to our RAG project.
+
+Always check the [Terraform Azure Reference](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs) in case something changes in the APIs.
 
 ### Initial Setup
 
@@ -56,7 +77,7 @@ terraform -help
 az login
 ```
 
-Create a **Service Principal**, i.e., a robot account which will be used for programmatic deployments:
+Create a **Service Principal** account, i.e., a robot account which will be used for programmatic deployments:
 
 ```bash
 # Get subscription id: AZURE_SUBSCRIPTION_ID
@@ -76,9 +97,9 @@ subscription_id = "your-subscription-id"
 tenant_id       = "your-tenant-id"
 ```
 
-Since `terraform.tfvars` is added to `.gitignore`, usually a `terraform.tfvars.example` is created (with dummy content) to signal other developers they need to set one.
+We add `terraform.tfvars` to `.gitignore`, because we want to avoid exposing our credentials; thus, usually a `terraform.tfvars.example` is created (with dummy content) to show other developers how they need to set one.
 
-Create a `main.tf` where the resources will be defined; for now, we can point to the variables/secrets we have defined in `terraform.tfvars`:
+Then, we need to create a `main.tf` where the resources will be defined; for now, we can point to the variables/secrets we have defined in `terraform.tfvars`:
 
 ```typescript
 provider "azurerm" {
@@ -91,7 +112,7 @@ provider "azurerm" {
 }
 ```
 
-Check account can be reached:
+Check that the account can be reached:
 
 ```bash
 cd .../infra
@@ -100,13 +121,15 @@ terraform init
 
 ### Configuration Files
 
-Now, create a `variables.tf`; note the goal of each file (all files are automatically discovered by `terraform`):
+Now, we create a `variables.tf` file; the goal of the files we have created so far is the following:
 
 - `main.tf`: it defines the `resources`, and uses the `variables` and their values defined in other files.
 - `variables.tf`: it defines the `variables` and gives them a default value.
 - `terraform.tfvars`: it contains the variable values, not published!
 
-`variables.tf` snippet:
+Note that all files are automatically discovered by `terraform`, so we don't need to import one to the other to reference the variables defined elsewhere.
+
+Here's a snippet in `variables.tf`:
 
 ```typescript
 //...
@@ -118,7 +141,7 @@ variable "resource_group_name" {
 }
 ```
 
-`terraform.tfvars` snippet:
+Here's a snippet in `terraform.tfvars`:
 
 ```typescript
 // ...
@@ -127,7 +150,7 @@ resource_group_name = "rg-rag-app-demo"
 resource_group_location = "West Europe"
 ```
 
-`main.tf` snippet:
+Here's a snippet in `main.tf`:
 
 ```typescript
 //...
@@ -153,8 +176,10 @@ Typical `<RESOURCE_TYPE>` values are:
 - `azurerm_resource_group`: An Azure resource group.
 - `azurerm_virtual_network`: An Azure virtual network.
 - `aws_s3_bucket`: An S3 bucket in AWS.
+- ...
 
 The `<LOGICAL_NAME>` is a unique name used to refer to the resource within the configuration. It is arbitrary but should describe the resource’s purpose clearly. Example names:
+
 - `"main"`: A simple and common default.
 - `"networking"`: For a resource group related to networking.
 - `"production"`: For a production resource group.
@@ -173,14 +198,14 @@ This is accomplished in `main.tf`:
 //...
 
 locals {
-  // Concatenate static values to create a unique input for hashing
-  // We create a unique string for our deployment
+  // Concatenate static/constant values to create a unique input for hashing.
+  // We create a unique string for our deployment.
   hash_input = join("-", [var.subscription_id, var.resource_group_name, var.resource_group_location])
 }
 
 //...
 
-// We append to the var.openai_name the first 6 characters of the local.hash_input
+// We append to the var.openai_name the first 6 characters of the local.hash_input.
 resource "azurerm_cognitive_account" "openai" {
   name                = "${var.openai_name}-${substr(md5(local.hash_input), 0, 6)}"
   location            = azurerm_resource_group.main.location
@@ -196,20 +221,20 @@ The following resources are defined in `main.tf`, all associated to the resource
 
 - Azure OpenAI; later, we will use the models `gpt-4o-mini` and `text-embedding-ada-002`
   - Tier: Standard
-  - Location West Europe
-  - Name: open-ai-demo
+  - Location West Europe (or select a desired one)
+  - Name: open-ai-demo (or select a desired one)
 - Azure AI Search
   - Tier: Free
-  - Location: West Europe
-  - Name: ai-search-demo
+  - Location: West Europe (or select a desired one)
+  - Name: ai-search-demo (or select a desired one)
 - Azure Container App
-  - Location: West Europe
-  - Name: backend-container-demo
-  - When a Container App is deployed via the Web UI, some additional services are created automatically, like an app environment and log analytics, etc.; in Terraform, we need to create them explicitly. We define only the environment.
-    - Environment name: backend-container-env-demo
-  - Note: the container image will be set later per `az` CLI command; if one must be chosen, pick a simple Hello World image.
+  - Location: West Europe (or select a desired one)
+  - Name: backend-container-demo (or select a desired one)
+  - When a Container App is deployed via the Web UI, some additional services are created automatically, like an app environment and log analytics; in Terraform, we need to create them explicitly. We define only the environment.
+    - Environment name: backend-container-env-demo (or select a desired one)
+  - Note: the container image will be set later per `az` CLI command; if one must be chosen, pick a simple Hello World image, as done in `main.tf`.
 
-See the files:
+Check the resulting files with all the definitions:
 
 - [`main.tf`](main.tf): definition of all the resources and their properties.
 - [`variables.tf`](variables.tf): definition of variables with names, types and default values to be changed.
@@ -242,12 +267,12 @@ terraform output
 terraform output -json
 ```
 
-For each deployed resource, pick/output the important secrets and variables, and put them into `.env`.
-A **better practice would be to deploy a Key Vault and save them there!**.
+For each deployed resource, we need to pick/output the important secrets and variables, and put them into `.env`.  
+:warning: Note: a **better practice would be to deploy a Key Vault and save them there!**.
 
-Note that even though we write the names
+### Steps to Carry Out After the Deployment of the Azure Resources
 
-Steps to carry out after deployment on the Azure web UI:
+Once the Azure resources have been deployed, 
 
 - Pick any missing variable/secret.
 - Index some documents: [`notebooks/ingest_data.ipynb`](../notebooks/ingest_data.ipynb).
@@ -262,9 +287,10 @@ But, prior to that:
 - We need to create a `RAG_API_KEY`, i.e., a password known to the backend which is requested whenever we want to use it. 
 - We need to set all these variables in Github.
 
-#### Possible Issues
+### Possible Issues
 
-- Restart container? Log Stream
+- Restart container? 
+- Container App: Monitoring > Log Stream
 
 ### Contents in `.env`
 
