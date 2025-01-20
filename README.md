@@ -52,18 +52,24 @@ The repository consists of the following files and folders:
 ├── backend/                            # The chatbot backend
 │   ├── config.yaml                     # Configuration parameters
 │   ├── api.py                          # FastAPI endpoint to use the chatbot as an API
+│   ├── preprocessing.py                # Document preprocessing (load, parse, split/chunk) prior to ingestion
 │   └── rag.py                          # RAG implementation (using Azure services via LangChain)
 ├── frontend/
 │   └── gui.py                          # Streamlit-based chatbot GUI
-├── docker/                             # Dockerfiles
+├── docker/                             # Dockerfiles used to create images and deploy the app as a container
 │   └── ...
 ├── infra/                              # Files and information of the infrastructure deployment (Azure services)
+│   ├── README.md                       # Description of how to set up the infrastructure: manually on the Azure Portal and using Terraform IaC
+│   ├── main.tf                         # Terraform main file with Azure resource definitions
+│   ├── variables.tf                    # Definition of variables used in main.tf: type, description, default value
+│   ├── (terraform.tfvars)              # Variables and secrets used in main.tf; the file is not committed/pushed!
 │   └── ...
 ├── scripts/                            # Bash/CLI scripts to spin up services & Co.
 |   └── ...
 ├── notebooks/
-│   ├── azure_search_rag.ipynb          # Tests with Azure-LangChain services used in the RAG
-│   ├── ingest_data.ipynb               # Convenience notebook to ingest documents into Azure AI Search
+│   ├── azure_search_rag.ipynb          # Tests with Azure-LangChain services used in the RAG components
+│   ├── ingest_data.ipynb               # Convenience notebook to preprocess and ingest desired documents into Azure AI Search
+│   ├── utils.ipynb                     # Utilities and extra calculations, e.g.: the computation of a secret used to access the backend
 │   └── test_api.ipynb                  # Tests with the FastAPI endpoint of the deployed RAG
 ├── conda.yaml                          # Basic conda environment definition
 ├── requirements-dev.in                 # Dependencies for development
