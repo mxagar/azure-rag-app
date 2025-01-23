@@ -259,11 +259,18 @@ streamlit run frontend/gui.py
 
 ## Notes on Retrieval Augmented Generation
 
-:construction:
+The Retrieval Augmented Generation (RAG) approach was originally presented in [Lewis et al., 2021](https://arxiv.org/abs/2005.11401) as a solution for augmenting with new knowledge pre-trained LLMs. Thanks to it, we can use a chatbot with our own data (previously unseen by the model) without training it.
 
-[`notebooks/azure_search_rag.ipynb`](./notebooks/azure_search_rag.ipynb)
+There are many resources which explain how RAGs work; for instance, check these Medium posts by [Leonie Monigatti](https://medium.com/@iamleonie):
 
-TBD.
+- [Building Retrieval-Augmented Generation Systems](https://medium.com/@iamleonie/building-retrieval-augmented-generation-systems-be587f42aedb)
+- [Retrieval-Augmented Generation (RAG): From Theory to LangChain Implementation](https://towardsdatascience.com/retrieval-augmented-generation-rag-from-theory-to-langchain-implementation-4e9bd5f6a4f2)
+
+Also, if you are interested in state-of-the-art approaches built using [LangChain](https://www.langchain.com), you can check my notes on the series [RAG from Scratch by Langchain (Youtube & Freecodecamp)](https://www.youtube.com/watch?v=sVcwVQRHIc8):
+
+[mxagar/generative_ai_udacity/06_RAGs_DeepDive/01_RAG_from_Scratch](https://github.com/mxagar/generative_ai_udacity/tree/main/06_RAGs_DeepDive/01_RAG_from_Scratch).
+
+Finally, the co-located notebook [`notebooks/azure_search_rag.ipynb`](./notebooks/azure_search_rag.ipynb) is a nice starter if you want to understand how the RAG pattern works in the context of this mini-project.
 
 ## Improvements
 
