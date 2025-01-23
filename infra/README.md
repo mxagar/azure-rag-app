@@ -31,15 +31,6 @@ This document is a detailed manual of how to approach both cases without much ex
       - [Triggering the Deployment](#triggering-the-deployment)
       - [Issues and Tips](#issues-and-tips)
     - [FastAPI](#fastapi)
-    - [Add your keys](#add-your-keys)
-  - [Generate a PAT](#generate-a-pat)
-  - [Create an Azure Service Principal](#create-an-azure-service-principal)
-  - [Azure Container Apps](#azure-container-apps)
-  - [Change defaults](#change-defaults)
-  - [Gotchas](#gotchas)
-  - [API Best Practices](#api-best-practices)
-    - [Use HTTP Error codes](#use-http-error-codes)
-    - [Accept request types sparingly](#accept-request-types-sparingly)
   - [IaC Provisioning with Terraform](#iac-provisioning-with-terraform)
     - [Initial Setup](#initial-setup)
     - [Configuration Files](#configuration-files)
@@ -351,110 +342,37 @@ jobs:
 
 Since we have defined the action/workflow to be triggered manually (`on: workflow_dispatch:`), we need to open the Github web UI and run it manually:
 
-<!--HERE-->
+    Github repository > Actions: Select our Workflow > Run Workflow
+
+When the workflow runs successfully, we should see two jobs in green: `build` and `deploy`.
 
 ![Github Actions](../assets/github_actions.png)
-
-WHen everything works
 
 ![Triggering Github Workflow](../assets/github_workflow.png)
 
 #### Issues and Tips
 
+- Workflows very rarely run green the first time; at least for me ;)
+- We can check the logs of each job if we click inside.
+- We can also contrast the Azure Container App logs in the Azure Portal: `Container App > Monitoring > Log Stream` or using the `az` CLI:
+  ```bash
+  az containerapp logs  show  --name $CONTAINER_APP_NAME --resource-group $RESOURCE_GROUP_NAME --follow
+  ```
+- Sometimes, restarting the Container App (stop and start in the Azure Portal or via the `az` CLI) has been helpful for me. 
 
 ### FastAPI
 
-
+Once the Azure Container App is deployed, we get the Container App URL from the Azure Portal. If we open that URL, it should redirect us to the `/docs` page which contains the API swagger created automatically by FastAPI.
 
 ![FastAPI Swagger](../assets/fast_api.png)
 
+Note that if we have set the `RAG_API_KEY` secret we will need to authenticate in the web UI of the swagger using that secret.
 
-### Add your keys
-
-Find the Azure OpenAI Keys in the Azure OpenAI Service. Note, that keys aren't in the studio, but in the resource itself. Add them to a local `.env` file. This repository ignores the `.env` file to prevent you (and me) from adding these keys by mistake.
-
-Your `.env` file should look like this:
-
-```
-# Azure OpenAI
-OPENAI_API_TYPE="azure"
-OPENAI_API_BASE="https://demo-alfredo-openai.openai.azure.com/"
-OPENAI_API_KEY="x"
-OPENAI_API_VERSION="2023-07-01-preview"
-
-# Azure Cognitive Search
-SEARCH_SERVICE_NAME="https://demo-alfredo.search.windows.net"
-SEARCH_API_KEY="x"
-SEARCH_INDEX_NAME="demo-index"
-```
-
-Note that the Azure Cognitive Search is only needed if you are following the Retrieval Augmented Guidance (RAG) demo. It isn't required for a simple Chat application.
-
-## Generate a PAT
-
-The access token will need to be added as an Action secret. [Create one](https://github.com/settings/tokens/new?description=Azure+Container+Apps+access&scopes=write:packages) with enough permissions to write to packages. It is needed because Azure will need to authenticate against the GitHub Container Registry to pull the image.
-
-## Create an Azure Service Principal
-
-You'll need the following:
-
-1. An Azure subscription ID [find it here](https://portal.azure.com/#view/Microsoft_Azure_Billing/SubscriptionsBlade) or [follow this guide](https://docs.microsoft.com/en-us/azure/azure-portal/get-subscription-tenant-id)
-1. A Service Principal with the following details the AppID, password, and tenant information. Create one with: `az ad sp create-for-rbac -n "REST API Service Principal"` and assign the IAM role for the subscription. Alternatively set the proper role access using the following command (use a real subscription id and replace it):
-
-```
-az ad sp create-for-rbac --name "CICD" --role contributor --scopes /subscriptions/$AZURE_SUBSCRIPTION_ID --sdk-auth
-``` 
-
-
-## Azure Container Apps
-
-Make sure you have one instance already created, and then capture the name and resource group. These will be used in the workflow file.
-
-## Change defaults 
-
-Make sure you use 2 CPU cores and 4GB of memory per container. Otherwise you may get an error because loading HuggingFace with FastAPI requires significant memory upfront.
-
-## Gotchas
-
-There are a few things that might get you into a failed state when deploying:
-
-* Not having enough RAM per container
-* Not using authentication for accessing the remote registry (ghcr.io in this case). Authentication is always required
-* Not using a `GITHUB_TOKEN` or not setting the write permissions for "packages". Go to `settings/actions` and make sure that "Read and write permissions" is set for "Workflow permissions" section
-* Different port than 80 in the container. By default Azure Container Apps use 80. Update to match the container.
-
-If running into trouble, check logs in the portal or use the following with the Azure CLI:
-
-```
-az containerapp logs  show  --name $CONTAINER_APP_NAME --resource-group $RESOURCE_GROUP_NAME --follow
-```
-
-Update both variables to match your environment
-
-## API Best Practices
-
-Although there are a few best practices for using the FastAPI framework, there are many different other suggestions to build solid HTTP APIs that can be applicable anywhere. 
-
-### Use HTTP Error codes
-The HTTP specification has several error codes available. Make use of the appropriate error code to match the condition that caused it. For example the `401` HTTP code can be used when access is unauthorized. You shouldn't use a single error code as a catch-all error.
-
-Here are some common scenarios associated with HTTP error codes:
-
-- `400 Bad request`: Use this to indicate a schema problem. For example if the server expected a string but got an integer
-- `401 Unauthorized`: When authentication is required and it wasn't present or satisfied
-- `404 Not found`: When the resource doesn't exist
-
-Note that it is a good practice to use `404 Not Found` to protect from requests that try to find if a resource exists without being authenticated. A good example of this is a service that doesn't want to expose usernames unless you are authenticated.
-
-
-### Accept request types sparingly
-
-| GET | POST | PUT | HEAD|
-|---|---|---|---|
-| Read Only | Write Only | Update existing | Does it exist? |
-
+Then, as in any regular FastAPI application, we can try the endpoints manually in the web UI.
 
 ## IaC Provisioning with Terraform
+
+<!--HERE-->
 
 Provisioning cloud services via web UI is less than optimal, because it's tedious and non-reproducible.
 
@@ -700,7 +618,10 @@ But, prior to that:
 ### Possible Issues and Tips
 
 - The deployment of our image to the Container App sometimes doesn't work right away. Restarting the Container App (stop and start in the Azure Portal or via the `az` CLI) has been helpful for me. 
-- We can check the logs of the Container App in the Azure Portal: `Container App > Monitoring > Log Stream`.
+- We can check the logs of the Container App in the Azure Portal: `Container App > Monitoring > Log Stream` or using the `az` CLI:
+  ```bash
+  az containerapp logs  show  --name $CONTAINER_APP_NAME --resource-group $RESOURCE_GROUP_NAME --follow
+  ```
 
 ### Summary of Secrets and Variables: Contents in `.env` and Github Settings
 
