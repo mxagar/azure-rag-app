@@ -268,9 +268,15 @@ TBD.
 ## Improvements
 
 - [x] Use Terraform IaC to deploy Azure resources
-- [ ] Use Azure Key Vault to store the secrets
+- [ ] Use **Azure Key Vault** to store the secrets
+- [ ] Use **Azure Storage Account** to store documents on the cloud
+- [ ] Try **Document Intelligence** for document parsing
+- [ ] Try **Azure model fine-tuning** to adjust style to the documents, if necessary (e.g., in a medicine/healthcare context)
+- [ ] Implement a **VNet** for more secure inter-service communication
+- [ ] Try the Azure Evaluation functionality
+- [ ] Implement better logging
+- [ ] Implement scalability
 - [ ] Deploy the frontend into another Container App
-- [ ] Try Document Intelligence for document parsing
 - [ ] Try query transformation techniques
   - Rewrite to be a more general question
   - Rewrite to be a more concrete question
@@ -286,6 +292,9 @@ For ideas about techniques to improve a vanilla RAG, check: [mxagar/RAG_from_Scr
 ## Related Links
 
 - Similar project: [Retrieval-Augmented Generation (RAG) - Bea Stollnitz](https://bea.stollnitz.com/blog/rag/).
+- Azure OpenAI model Fine-Tuning tutorials:
+  - [Customize a model with fine-tuning](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/fine-tuning?tabs=azure-openai%2Cturbo%2Cpython-new&pivots=programming-language-python)
+  - [Azure OpenAI GPT-4o-mini fine-tuning tutorial](https://learn.microsoft.com/en-us/azure/ai-services/openai/tutorials/fine-tune?tabs=python-new%2Ccommand-line)
 - My notes on the LangChain tutorial [RAG from Scratch by Langchain (Youtube & Freecodecamp)](https://www.youtube.com/watch?v=sVcwVQRHIc8): [mxagar/generative_ai_udacity/06_RAGs_DeepDive/01_RAG_from_Scratch](https://github.com/mxagar/generative_ai_udacity/tree/main/06_RAGs_DeepDive/01_RAG_from_Scratch).
 - My notes on the Coursera course [Operationalizing LLMs on Azure](https://www.coursera.org/learn/llmops-azure): [mxagar/generative_ai_udacity/06_RAGs_DeepDive/02_Azure_LLMs](https://github.com/mxagar/generative_ai_udacity/tree/main/06_RAGs_DeepDive/02_Azure_LLMs).
 - My personal notes on the [Udacity Generative AI Nanodegree](https://www.udacity.com/course/generative-ai--nd608): [mxagar/generative_ai_udacity](https://github.com/mxagar/generative_ai_udacity).
